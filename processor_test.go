@@ -341,20 +341,20 @@ func Test_marshal(t *testing.T) {
 	assert.Equal(t, testTS2, wrq.Timeseries[1])
 }
 
-func Test_createWriteRequests(t *testing.T) {
-	p, err := createProcessor()
-	assert.Nil(t, err)
+// func Test_createWriteRequests(t *testing.T) {
+// 	p, err := createProcessor()
+// 	assert.Nil(t, err)
 
-	m, err := p.createWriteRequests(testWRQ)
-	assert.Nil(t, err)
+// 	m, err := p.createWriteRequests(testWRQ)
+// 	assert.Nil(t, err)
 
-	mExp := map[string]*prompb.WriteRequest{
-		"foobar": testWRQ1,
-		"foobaz": testWRQ2,
-	}
+// 	mExp := map[string]*prompb.WriteRequest{
+// 		"foobar": testWRQ1,
+// 		"foobaz": testWRQ2,
+// 	}
 
-	assert.Equal(t, mExp, m)
-}
+// 	assert.Equal(t, mExp, m)
+// }
 
 func Benchmark_marshal(b *testing.B) {
 	p, _ := createProcessor()

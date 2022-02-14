@@ -174,6 +174,10 @@ func (p *processor) createWriteRequests(wrReqIn *prompb.WriteRequest) (map[strin
 	// Create per-tenant write requests
 	m := map[string]*prompb.WriteRequest{}
 
+	// https://github.com/prometheus/prometheus/blob/main/prompb/types.proto#L41
+	nowMillis := time.Now().UTC().Unix() * 1000
+	oldestAllowed := nowMillis - 30*60*1000 // never go back more than 30min
+
 	for _, ts := range wrReqIn.Timeseries {
 		tenant, err := p.processTimeseries(&ts)
 		if err != nil {
@@ -185,6 +189,17 @@ func (p *processor) createWriteRequests(wrReqIn *prompb.WriteRequest) (map[strin
 			wrReqOut = &prompb.WriteRequest{}
 			m[tenant] = wrReqOut
 		}
+
+		freshSamples := []prompb.Sample{}
+		for _, sample := range ts.Samples {
+			if sample.Timestamp >= oldestAllowed {
+				freshSamples = append(freshSamples, sample)
+			} else {
+				ageMillis := nowMillis - sample.Timestamp
+				p.Logger.Infof("Dropping sample with labels %+v, it is too old (%d)", ts.Labels, ageMillis/1000)
+			}
+		}
+		ts.Samples = freshSamples
 
 		wrReqOut.Timeseries = append(wrReqOut.Timeseries, ts)
 	}
